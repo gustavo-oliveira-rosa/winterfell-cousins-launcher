@@ -1,1 +1,6 @@
-build/\n.gradle/\n*.class
+build/
+.gradle/
+*.class
+:run
+=25]*
+Task
