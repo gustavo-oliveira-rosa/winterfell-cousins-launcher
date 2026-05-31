@@ -1,0 +1,10 @@
+{
+  "HudOn": true,
+  "InvHudOn": true,
+  "toggleVerticalMode": false,
+  "cornerEnabled": false,
+  "armorX": 400,
+  "armorY": 200,
+  "armorCorner": 0,
+  "lud": 0
+}
