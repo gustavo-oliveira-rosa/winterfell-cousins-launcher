@@ -1,8 +1,10 @@
 package com.launcher;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URI;
@@ -45,37 +47,62 @@ public class Main {
     }
 
     private static void createUI() {
-        JFrame frame = new JFrame("Minecraft Launcher");
+        JFrame frame = new JFrame("Winterfell Cousins Launcher");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(500, 330);
+        frame.setSize(520, 400);
         frame.setLocationRelativeTo(null);
         frame.setResizable(false);
 
+        // Icone da janela e taskbar
+        try {
+            BufferedImage icon = ImageIO.read(Main.class.getResourceAsStream("/icon.png"));
+            frame.setIconImage(icon);
+        } catch (Exception ignored) {}
+
         JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBackground(new Color(45, 45, 45));
+        panel.setBackground(new Color(30, 30, 30));
+        panel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(8, 10, 8, 10);
+        gbc.insets = new Insets(6, 8, 6, 8);
+
+        // Logo do Minecraft
+        try {
+            BufferedImage logoImg = ImageIO.read(Main.class.getResourceAsStream("/minecraft_logo.png"));
+            Image scaled = logoImg.getScaledInstance(300, 50, Image.SCALE_SMOOTH);
+            JLabel logoLabel = new JLabel(new ImageIcon(scaled));
+            gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
+            panel.add(logoLabel, gbc);
+        } catch (Exception ignored) {}
 
         JLabel nickLabel = new JLabel("Nickname:");
-        nickLabel.setForeground(Color.WHITE);
-        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 1;
+        nickLabel.setForeground(new Color(200, 200, 200));
+        nickLabel.setFont(new Font("SansSerif", Font.BOLD, 13));
+        gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 1;
         panel.add(nickLabel, gbc);
 
         JTextField nickField = new JTextField(20);
-        nickField.setPreferredSize(new Dimension(250, 30));
-        gbc.gridx = 1; gbc.gridy = 0;
+        nickField.setPreferredSize(new Dimension(250, 32));
+        nickField.setBackground(new Color(55, 55, 55));
+        nickField.setForeground(Color.WHITE);
+        nickField.setCaretColor(Color.WHITE);
+        nickField.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(80, 80, 80)),
+            BorderFactory.createEmptyBorder(4, 8, 4, 8)));
+        gbc.gridx = 1; gbc.gridy = 1;
         panel.add(nickField, gbc);
 
         JCheckBox rememberCheck = new JCheckBox("Lembrar nickname");
-        rememberCheck.setForeground(Color.WHITE);
-        rememberCheck.setBackground(new Color(45, 45, 45));
-        gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 1;
+        rememberCheck.setForeground(new Color(180, 180, 180));
+        rememberCheck.setBackground(new Color(30, 30, 30));
+        rememberCheck.setFont(new Font("SansSerif", Font.PLAIN, 11));
+        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 1;
         panel.add(rememberCheck, gbc);
 
         JCheckBox resetCheck = new JCheckBox("Redefinir ao iniciar");
-        resetCheck.setForeground(Color.WHITE);
-        resetCheck.setBackground(new Color(45, 45, 45));
-        gbc.gridx = 1; gbc.gridy = 1; gbc.gridwidth = 1;
+        resetCheck.setForeground(new Color(180, 180, 180));
+        resetCheck.setBackground(new Color(30, 30, 30));
+        resetCheck.setFont(new Font("SansSerif", Font.PLAIN, 11));
+        gbc.gridx = 1; gbc.gridy = 2; gbc.gridwidth = 1;
         panel.add(resetCheck, gbc);
 
         // Carregar nick salvo
@@ -90,34 +117,50 @@ public class Main {
             }
         } catch (IOException ignored) {}
 
-        JButton playButton = new JButton("Play");
-        playButton.setBackground(new Color(76, 175, 80));
+        JButton playButton = new JButton("JOGAR");
+        playButton.setBackground(new Color(56, 142, 60));
         playButton.setForeground(Color.WHITE);
         playButton.setFocusPainted(false);
-        playButton.setPreferredSize(new Dimension(150, 35));
-        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 1;
+        playButton.setFont(new Font("SansSerif", Font.BOLD, 14));
+        playButton.setPreferredSize(new Dimension(150, 40));
+        playButton.setBorder(BorderFactory.createEmptyBorder());
+        playButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 1;
         panel.add(playButton, gbc);
 
         JButton filesButton = new JButton("ARQUIVOS DO JOGO");
-        filesButton.setBackground(new Color(63, 81, 181));
+        filesButton.setBackground(new Color(48, 63, 159));
         filesButton.setForeground(Color.WHITE);
         filesButton.setFocusPainted(false);
-        filesButton.setPreferredSize(new Dimension(180, 35));
+        filesButton.setFont(new Font("SansSerif", Font.BOLD, 11));
+        filesButton.setPreferredSize(new Dimension(180, 40));
+        filesButton.setBorder(BorderFactory.createEmptyBorder());
+        filesButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         filesButton.setEnabled(Files.exists(gameDir));
-        gbc.gridx = 1; gbc.gridy = 2; gbc.gridwidth = 1;
+        gbc.gridx = 1; gbc.gridy = 3; gbc.gridwidth = 1;
         panel.add(filesButton, gbc);
 
         JProgressBar progressBar = new JProgressBar(0, 100);
         progressBar.setStringPainted(true);
-        progressBar.setPreferredSize(new Dimension(350, 25));
+        progressBar.setPreferredSize(new Dimension(400, 22));
+        progressBar.setBackground(new Color(50, 50, 50));
+        progressBar.setForeground(new Color(76, 175, 80));
         progressBar.setVisible(false);
-        gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 2;
+        gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 2;
         panel.add(progressBar, gbc);
 
         JLabel statusLabel = new JLabel(" ");
-        statusLabel.setForeground(Color.LIGHT_GRAY);
-        gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 2;
+        statusLabel.setForeground(new Color(150, 150, 150));
+        statusLabel.setFont(new Font("SansSerif", Font.PLAIN, 11));
+        gbc.gridx = 0; gbc.gridy = 5; gbc.gridwidth = 2;
         panel.add(statusLabel, gbc);
+
+        JLabel signatureLabel = new JLabel("Made by: koenomatachisan");
+        signatureLabel.setForeground(new Color(80, 80, 80));
+        signatureLabel.setFont(new Font("SansSerif", Font.ITALIC, 10));
+        gbc.gridx = 0; gbc.gridy = 6; gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.SOUTHEAST;
+        panel.add(signatureLabel, gbc);
 
         filesButton.addActionListener((ActionEvent e) -> {
             try {
