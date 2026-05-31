@@ -37,13 +37,77 @@ public class Main {
     private static Path assetsDir;
     private static Path nativesDir;
 
+    private static final String JAVA_PATH = "/usr/lib/jvm/java-25-openjdk-amd64/bin/java";
+    private static final long MIN_RAM_MB = 4096;
+    private static final long MIN_DISK_MB = 1024;
+
     public static void main(String[] args) {
         gameDir = Paths.get(LAUNCHER_DIR);
         librariesDir = gameDir.resolve("libraries");
         assetsDir = gameDir.resolve("assets");
         nativesDir = gameDir.resolve("natives");
 
-        SwingUtilities.invokeLater(Main::createUI);
+        SwingUtilities.invokeLater(() -> {
+            String error = checkRequirements();
+            if (error != null) {
+                JOptionPane.showMessageDialog(null, error, "Requisitos não atendidos", JOptionPane.ERROR_MESSAGE);
+                System.exit(1);
+            }
+            createUI();
+        });
+    }
+
+    private static String checkRequirements() {
+        List<String> warnings = new ArrayList<>();
+
+        // Java 25 - instalar se não tiver
+        if (!Files.isExecutable(Paths.get(JAVA_PATH))) {
+            int choice = JOptionPane.showConfirmDialog(null,
+                    "Java 25 não encontrado. Deseja instalar agora?",
+                    "Java necessário", JOptionPane.YES_NO_OPTION);
+            if (choice == JOptionPane.YES_OPTION) {
+                if (!installJava()) {
+                    return "Falha ao instalar Java 25. Instale manualmente:\nsudo apt install openjdk-25-jdk";
+                }
+            } else {
+                return "Java 25 é necessário para rodar o Minecraft.";
+            }
+        }
+
+        // RAM - apenas alerta
+        long totalRamMB = ((com.sun.management.OperatingSystemMXBean)
+                java.lang.management.ManagementFactory.getOperatingSystemMXBean())
+                .getTotalMemorySize() / (1024 * 1024);
+        if (totalRamMB < MIN_RAM_MB) {
+            warnings.add("RAM baixa: " + totalRamMB + "MB (recomendado: " + MIN_RAM_MB + "MB).\nO jogo pode ficar lento.");
+        }
+
+        // Disco - apenas alerta
+        try {
+            Path home = Paths.get(System.getProperty("user.home"));
+            long freeSpaceMB = Files.getFileStore(home).getUsableSpace() / (1024 * 1024);
+            if (freeSpaceMB < MIN_DISK_MB) {
+                warnings.add("Espaço em disco baixo: " + freeSpaceMB + "MB livre (recomendado: " + MIN_DISK_MB + "MB).");
+            }
+        } catch (IOException ignored) {}
+
+        if (!warnings.isEmpty()) {
+            JOptionPane.showMessageDialog(null, String.join("\n\n", warnings),
+                    "Aviso", JOptionPane.WARNING_MESSAGE);
+        }
+        return null;
+    }
+
+    private static boolean installJava() {
+        try {
+            ProcessBuilder pb = new ProcessBuilder("pkexec", "bash", "-c",
+                    "apt update && apt install -y openjdk-25-jdk");
+            pb.inheritIO();
+            Process p = pb.start();
+            return p.waitFor() == 0 && Files.isExecutable(Paths.get(JAVA_PATH));
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private static void createUI() {
@@ -354,9 +418,8 @@ public class Main {
         String mainClass = versionJson.get("mainClass").getAsString();
         String classpath = String.join(File.pathSeparator, classpathEntries);
 
-        String java25 = "/usr/lib/jvm/java-25-openjdk-amd64/bin/java";
         List<String> command = new ArrayList<>();
-        command.add(java25);
+        command.add(JAVA_PATH);
         command.add("-Xmx2G");
         command.add("-Xms512M");
         command.add("-Djava.library.path=" + nativesDir.toAbsolutePath());
