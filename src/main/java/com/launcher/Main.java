@@ -360,6 +360,10 @@ public class Main {
         command.add("-Xmx2G");
         command.add("-Xms512M");
         command.add("-Djava.library.path=" + nativesDir.toAbsolutePath());
+        command.add("-Dminecraft.api.auth.host=http://0.0.0.0");
+        command.add("-Dminecraft.api.account.host=http://0.0.0.0");
+        command.add("-Dminecraft.api.session.host=http://0.0.0.0");
+        command.add("-Dminecraft.api.services.host=http://0.0.0.0");
         command.add("-cp");
         command.add(classpath);
         command.add(mainClass);
@@ -382,8 +386,15 @@ public class Main {
         Process process = pb.start();
 
         updateStatus(statusLabel, "Minecraft iniciado!");
+        SwingUtilities.invokeLater(() -> {
+            for (Window w : Window.getWindows()) w.setVisible(false);
+        });
         process.waitFor();
-        System.exit(0);
+        SwingUtilities.invokeLater(() -> {
+            for (Window w : Window.getWindows()) w.setVisible(true);
+            statusLabel.setText(" ");
+            progressBar.setVisible(false);
+        });
     }
 
     private static void deleteGameFiles() throws IOException {
