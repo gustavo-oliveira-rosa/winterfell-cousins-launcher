@@ -123,8 +123,14 @@ public class Main {
             frame.setIconImage(icon);
         } catch (Exception ignored) {}
 
+        // Background GIF animado
+        ImageIcon bgIcon = new ImageIcon(Main.class.getResource("/fantasy-background.gif"));
+        JLabel bgLabel = new JLabel(bgIcon);
+        bgLabel.setLayout(new GridBagLayout());
+        frame.setContentPane(bgLabel);
+
         JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBackground(new Color(30, 30, 30));
+        panel.setOpaque(false);
         panel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(6, 8, 6, 8);
@@ -139,8 +145,10 @@ public class Main {
         } catch (Exception ignored) {}
 
         JLabel nickLabel = new JLabel("Nickname:");
-        nickLabel.setForeground(new Color(200, 200, 200));
+        nickLabel.setForeground(Color.WHITE);
         nickLabel.setFont(new Font("SansSerif", Font.BOLD, 13));
+        nickLabel.setOpaque(true);
+        nickLabel.setBackground(new Color(0, 0, 0, 150));
         gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 1;
         panel.add(nickLabel, gbc);
 
@@ -156,15 +164,17 @@ public class Main {
         panel.add(nickField, gbc);
 
         JCheckBox rememberCheck = new JCheckBox("Lembrar nickname");
-        rememberCheck.setForeground(new Color(180, 180, 180));
-        rememberCheck.setBackground(new Color(30, 30, 30));
+        rememberCheck.setForeground(Color.WHITE);
+        rememberCheck.setOpaque(true);
+        rememberCheck.setBackground(new Color(0, 0, 0, 150));
         rememberCheck.setFont(new Font("SansSerif", Font.PLAIN, 11));
         gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 1;
         panel.add(rememberCheck, gbc);
 
         JCheckBox resetCheck = new JCheckBox("Redefinir ao iniciar");
-        resetCheck.setForeground(new Color(180, 180, 180));
-        resetCheck.setBackground(new Color(30, 30, 30));
+        resetCheck.setForeground(Color.WHITE);
+        resetCheck.setOpaque(true);
+        resetCheck.setBackground(new Color(0, 0, 0, 150));
         resetCheck.setFont(new Font("SansSerif", Font.PLAIN, 11));
         gbc.gridx = 1; gbc.gridy = 2; gbc.gridwidth = 1;
         panel.add(resetCheck, gbc);
@@ -214,14 +224,18 @@ public class Main {
         panel.add(progressBar, gbc);
 
         JLabel statusLabel = new JLabel(" ");
-        statusLabel.setForeground(new Color(150, 150, 150));
+        statusLabel.setForeground(Color.WHITE);
         statusLabel.setFont(new Font("SansSerif", Font.PLAIN, 11));
+        statusLabel.setOpaque(true);
+        statusLabel.setBackground(new Color(0, 0, 0, 150));
         gbc.gridx = 0; gbc.gridy = 5; gbc.gridwidth = 2;
         panel.add(statusLabel, gbc);
 
         JLabel signatureLabel = new JLabel("Made by: koenomatachisan");
-        signatureLabel.setForeground(new Color(80, 80, 80));
+        signatureLabel.setForeground(Color.WHITE);
         signatureLabel.setFont(new Font("SansSerif", Font.ITALIC, 10));
+        signatureLabel.setOpaque(true);
+        signatureLabel.setBackground(new Color(0, 0, 0, 150));
         gbc.gridx = 0; gbc.gridy = 6; gbc.gridwidth = 2;
         gbc.anchor = GridBagConstraints.SOUTHEAST;
         panel.add(signatureLabel, gbc);
@@ -273,7 +287,7 @@ public class Main {
             }).start();
         });
 
-        frame.setContentPane(panel);
+        bgLabel.add(panel);
         frame.setVisible(true);
     }
 
@@ -440,6 +454,7 @@ public class Main {
         command.add("--uuid"); command.add(uuid);
         command.add("--accessToken"); command.add("0");
         command.add("--userType"); command.add("legacy");
+        command.add("--quickPlayMultiplayer"); command.add("2.25.151.5:25565");
 
         updateProgress(progressBar, 100);
 

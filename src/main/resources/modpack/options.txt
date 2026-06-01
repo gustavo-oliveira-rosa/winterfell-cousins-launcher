@@ -64,7 +64,7 @@ damageTiltStrength:1.0
 highContrast:false
 highContrastBlockOutline:false
 narratorHotkey:true
-resourcePacks:["vanilla","punchy:punchy","file/FA%2BAll_Extensions-v1.9.1.zip","file/FA%2BClassic_Horses-v1.6.zip","file/FA%2BCreepers-v2.1.zip","file/FA%2BDetails-v2.3.zip","file/FA%2BEmissive-v1.6.zip","file/FA%2BObjects-v2.1.1.zip","file/FA%2BPlayer-v1.0.zip","file/FA%2BQuivers-v2.2.zip","file/FA%2BSpiders-v2.2.zip","file/FreshAnimations_v1.10.5.zip","file/Icons%20v.1.13.3.zip"]
+resourcePacks:["vanilla","punchy:punchy","file/custom-panorama","file/FA%2BAll_Extensions-v1.9.1.zip","file/FA%2BClassic_Horses-v1.6.zip","file/FA%2BCreepers-v2.1.zip","file/FA%2BDetails-v2.3.zip","file/FA%2BEmissive-v1.6.zip","file/FA%2BObjects-v2.1.1.zip","file/FA%2BPlayer-v1.0.zip","file/FA%2BQuivers-v2.2.zip","file/FA%2BSpiders-v2.2.zip","file/FreshAnimations_v1.10.5.zip","file/Icons%20v.1.13.3.zip"]
 incompatibleResourcePacks:[]
 lastServer:
 lang:en_us
