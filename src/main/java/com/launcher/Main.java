@@ -284,7 +284,8 @@ public class Main {
         extractResourceDir("modpack/data", gameDir.resolve("data"));
         extractResourceDir("modpack/journeymap", gameDir.resolve("journeymap"));
         extractResourceDir("modpack/server-resource-packs", gameDir.resolve("server-resource-packs"));
-        extractResourceDir("modpack/natives", nativesDir);
+        String nativesResource = isWindows() ? "modpack/natives-windows" : "modpack/natives";
+        extractResourceDir(nativesResource, nativesDir);
 
         for (String file : GAME_FILES) {
             Path dest = gameDir.resolve(file);
@@ -576,6 +577,10 @@ public class Main {
         String version = parts[2];
         String fileName = artifact + "-" + version + ".jar";
         return baseDir.resolve(group).resolve(artifact).resolve(version).resolve(fileName);
+    }
+
+    private static boolean isWindows() {
+        return System.getProperty("os.name").toLowerCase().contains("win");
     }
 
     private static void updateStatus(JLabel label, String text) {
