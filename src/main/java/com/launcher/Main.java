@@ -22,7 +22,9 @@ import com.google.gson.*;
 public class Main {
 
     private static final String MC_VERSION = "MODPACK";
-    private static final String LAUNCHER_DIR = System.getProperty("user.home") + "/.winterfell-launcher";
+    private static final String LAUNCHER_DIR = System.getProperty("os.name").toLowerCase().contains("win")
+            ? System.getenv("APPDATA") + "\\winterfell-launcher"
+            : System.getProperty("user.home") + "/.winterfell-launcher";
 
     private static final String[] GAME_DIRS = {
         "mods", "config", "resourcepacks", "shaderpacks", "data",
