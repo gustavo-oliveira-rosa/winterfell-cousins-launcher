@@ -37,7 +37,7 @@ public class Main {
     private static Path assetsDir;
     private static Path nativesDir;
 
-    private static final String JAVA_PATH = "/usr/lib/jvm/java-25-openjdk-amd64/bin/java";
+    private static final String JAVA_PATH = "java";
     private static final long MIN_RAM_MB = 4096;
     private static final long MIN_DISK_MB = 1024;
 
@@ -59,20 +59,6 @@ public class Main {
 
     private static String checkRequirements() {
         List<String> warnings = new ArrayList<>();
-
-        // Java 25 - instalar se não tiver
-        if (!Files.isExecutable(Paths.get(JAVA_PATH))) {
-            int choice = JOptionPane.showConfirmDialog(null,
-                    "Java 25 não encontrado. Deseja instalar agora?",
-                    "Java necessário", JOptionPane.YES_NO_OPTION);
-            if (choice == JOptionPane.YES_OPTION) {
-                if (!installJava()) {
-                    return "Falha ao instalar Java 25. Instale manualmente:\nsudo apt install openjdk-25-jdk";
-                }
-            } else {
-                return "Java 25 é necessário para rodar o Minecraft.";
-            }
-        }
 
         // RAM - apenas alerta
         long totalRamMB = ((com.sun.management.OperatingSystemMXBean)
@@ -98,17 +84,6 @@ public class Main {
         return null;
     }
 
-    private static boolean installJava() {
-        try {
-            ProcessBuilder pb = new ProcessBuilder("pkexec", "bash", "-c",
-                    "apt update && apt install -y openjdk-25-jdk");
-            pb.inheritIO();
-            Process p = pb.start();
-            return p.waitFor() == 0 && Files.isExecutable(Paths.get(JAVA_PATH));
-        } catch (Exception e) {
-            return false;
-        }
-    }
 
     private static void createUI() {
         JFrame frame = new JFrame("Winterfell Cousins Launcher");
