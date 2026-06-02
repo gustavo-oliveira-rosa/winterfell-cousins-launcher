@@ -485,7 +485,7 @@ public class Main {
         if (url == null) return;
 
         if (url.getProtocol().equals("jar")) {
-            String jarPath = url.getPath().substring(5, url.getPath().indexOf("!"));
+            String jarPath = java.net.URLDecoder.decode(url.getPath().substring(5, url.getPath().indexOf("!")), "UTF-8");
             try (JarFile jar = new JarFile(jarPath)) {
                 Enumeration<JarEntry> entries = jar.entries();
                 while (entries.hasMoreElements()) {
