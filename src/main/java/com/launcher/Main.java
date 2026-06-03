@@ -39,7 +39,7 @@ public class Main {
     private static Path assetsDir;
     private static Path nativesDir;
 
-    private static final String JAVA_PATH = "java";
+    private static final String JAVA_PATH = findJava21Plus();
     private static final long MIN_RAM_MB = 4096;
     private static final long MIN_DISK_MB = 1024;
 
@@ -581,6 +581,45 @@ public class Main {
 
     private static boolean isWindows() {
         return System.getProperty("os.name").toLowerCase().contains("win");
+    }
+
+    private static String findJava21Plus() {
+        // Try JAVA_HOME first
+        String javaHome = System.getenv("JAVA_HOME");
+        if (javaHome != null) {
+            Path bin = Paths.get(javaHome, "bin", "java");
+            if (Files.isExecutable(bin) && getJavaVersion(bin.toString()) >= 21) {
+                return bin.toString();
+            }
+        }
+        // On Linux, scan /usr/lib/jvm for java 21+
+        if (!System.getProperty("os.name").toLowerCase().contains("win")) {
+            try {
+                Path jvmDir = Paths.get("/usr/lib/jvm");
+                if (Files.isDirectory(jvmDir)) {
+                    Optional<Path> found = Files.list(jvmDir)
+                            .map(p -> p.resolve("bin/java"))
+                            .filter(Files::isExecutable)
+                            .filter(p -> getJavaVersion(p.toString()) >= 21)
+                            .max(Comparator.comparingInt(p -> getJavaVersion(p.toString())));
+                    if (found.isPresent()) return found.get().toString();
+                }
+            } catch (IOException ignored) {}
+        }
+        return "java";
+    }
+
+    private static int getJavaVersion(String javaPath) {
+        try {
+            Process p = new ProcessBuilder(javaPath, "-version").redirectErrorStream(true).start();
+            String output = new String(p.getInputStream().readAllBytes());
+            p.waitFor();
+            // Parse version from output like: openjdk version "21.0.1" or "1.8.0_xxx"
+            java.util.regex.Matcher m = java.util.regex.Pattern.compile("\"(\\d+)([.\\d]*)\"")
+                    .matcher(output);
+            if (m.find()) return Integer.parseInt(m.group(1));
+        } catch (Exception ignored) {}
+        return 0;
     }
 
     private static void updateStatus(JLabel label, String text) {

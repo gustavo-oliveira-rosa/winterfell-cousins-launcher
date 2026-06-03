@@ -2,7 +2,7 @@
 
 Launcher customizado para o modpack Winterfell Cousins (Minecraft 1.21 + Fabric).
 
-[![Download](https://img.shields.io/badge/⬇_BAIXAR_LAUNCHER-v1.2-green?style=for-the-badge)](https://github.com/gustavo-oliveira-rosa/winterfell-cousins-launcher/releases/download/v1.2/minecraft-launcher-1.0.jar)
+[![Download](https://img.shields.io/badge/⬇_BAIXAR_LAUNCHER-v1.3-green?style=for-the-badge)](https://github.com/gustavo-oliveira-rosa/winterfell-cousins-launcher/releases/download/v1.3/minecraft-launcher-1.0.jar)
 
 ## Como usar
 
