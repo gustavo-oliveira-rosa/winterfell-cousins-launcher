@@ -39,9 +39,11 @@ public class Main {
     private static Path assetsDir;
     private static Path nativesDir;
 
-    private static final String JAVA_PATH = findJava21Plus();
     private static final long MIN_RAM_MB = 4096;
     private static final long MIN_DISK_MB = 1024;
+    private static final int REQUIRED_JAVA_VERSION = 21;
+    private static final String ADOPTIUM_API = "https://api.adoptium.net/v3/binary/latest/"
+            + REQUIRED_JAVA_VERSION + "/ga/%s/%s/jre/hotspot/normal/eclipse";
 
     public static void main(String[] args) {
         gameDir = Paths.get(LAUNCHER_DIR);
@@ -275,6 +277,9 @@ public class Main {
         Files.createDirectories(assetsDir.resolve("objects"));
         Files.createDirectories(nativesDir);
 
+        // Garantir Java 21+ disponível
+        String javaPath = ensureJava(statusLabel, progressBar);
+
         // Extrair arquivos do modpack embutidos no launcher
         updateStatus(statusLabel, "Extraindo modpack...");
         extractResourceDir("modpack/mods", gameDir.resolve("mods"));
@@ -411,7 +416,7 @@ public class Main {
         String classpath = String.join(File.pathSeparator, classpathEntries);
 
         List<String> command = new ArrayList<>();
-        command.add(JAVA_PATH);
+        command.add(javaPath);
         command.add("-Xmx2G");
         command.add("-Xms512M");
         command.add("-Djava.library.path=" + nativesDir.toAbsolutePath());
@@ -583,30 +588,85 @@ public class Main {
         return System.getProperty("os.name").toLowerCase().contains("win");
     }
 
-    private static String findJava21Plus() {
-        // Try JAVA_HOME first
+    private static String ensureJava(JLabel statusLabel, JProgressBar progressBar) throws Exception {
+        // 1. Verificar JRE já baixado pelo launcher
+        Path jreDir = gameDir.resolve("jre");
+        String javaBin = isWindows() ? "bin/java.exe" : "bin/java";
+        if (Files.isDirectory(jreDir)) {
+            try (var dirs = Files.list(jreDir)) {
+                Optional<Path> existing = dirs
+                        .map(p -> p.resolve(javaBin))
+                        .filter(Files::isExecutable)
+                        .findFirst();
+                if (existing.isPresent()) return existing.get().toString();
+            }
+        }
+
+        // 2. Verificar sistema (JAVA_HOME e /usr/lib/jvm)
+        String systemJava = findSystemJava21();
+        if (systemJava != null) return systemJava;
+
+        // 3. Baixar JRE Adoptium Temurin 21
+        updateStatus(statusLabel, "Baixando Java 21 (primeira vez)...");
+        Files.createDirectories(jreDir);
+
+        String os = isWindows() ? "windows" : "linux";
+        String arch = System.getProperty("os.arch").contains("aarch64") ? "aarch64" : "x64";
+        String url = String.format(ADOPTIUM_API, os, arch);
+
+        String ext = isWindows() ? ".zip" : ".tar.gz";
+        Path archive = jreDir.resolve("jre-download" + ext);
+        downloadFileWithProgress(url, archive, -1, progressBar, 0, 5);
+
+        // Extrair
+        updateStatus(statusLabel, "Extraindo Java 21...");
+        if (isWindows()) {
+            extractZip(archive, jreDir);
+        } else {
+            ProcessBuilder pb = new ProcessBuilder("tar", "xzf", archive.toString(), "-C", jreDir.toString());
+            pb.start().waitFor();
+        }
+        Files.deleteIfExists(archive);
+
+        // Encontrar o java extraído
+        try (var dirs = Files.list(jreDir)) {
+            Optional<Path> extracted = dirs
+                    .map(p -> p.resolve(javaBin))
+                    .filter(Files::isExecutable)
+                    .findFirst();
+            if (extracted.isPresent()) return extracted.get().toString();
+        }
+        throw new RuntimeException("Falha ao instalar Java 21. Instale manualmente: sudo apt install openjdk-21-jdk");
+    }
+
+    private static String findSystemJava21() {
+        // JAVA_HOME
         String javaHome = System.getenv("JAVA_HOME");
         if (javaHome != null) {
             Path bin = Paths.get(javaHome, "bin", "java");
-            if (Files.isExecutable(bin) && getJavaVersion(bin.toString()) >= 21) {
+            if (Files.isExecutable(bin) && getJavaVersion(bin.toString()) >= REQUIRED_JAVA_VERSION) {
                 return bin.toString();
             }
         }
-        // On Linux, scan /usr/lib/jvm for java 21+
-        if (!System.getProperty("os.name").toLowerCase().contains("win")) {
+        // Linux: /usr/lib/jvm
+        if (!isWindows()) {
             try {
                 Path jvmDir = Paths.get("/usr/lib/jvm");
                 if (Files.isDirectory(jvmDir)) {
-                    Optional<Path> found = Files.list(jvmDir)
-                            .map(p -> p.resolve("bin/java"))
-                            .filter(Files::isExecutable)
-                            .filter(p -> getJavaVersion(p.toString()) >= 21)
-                            .max(Comparator.comparingInt(p -> getJavaVersion(p.toString())));
-                    if (found.isPresent()) return found.get().toString();
+                    try (var dirs = Files.list(jvmDir)) {
+                        Optional<Path> found = dirs
+                                .map(p -> p.resolve("bin/java"))
+                                .filter(Files::isExecutable)
+                                .filter(p -> getJavaVersion(p.toString()) >= REQUIRED_JAVA_VERSION)
+                                .max(Comparator.comparingInt(p -> getJavaVersion(p.toString())));
+                        if (found.isPresent()) return found.get().toString();
+                    }
                 }
             } catch (IOException ignored) {}
         }
-        return "java";
+        // Default java no PATH
+        if (getJavaVersion("java") >= REQUIRED_JAVA_VERSION) return "java";
+        return null;
     }
 
     private static int getJavaVersion(String javaPath) {
@@ -614,12 +674,26 @@ public class Main {
             Process p = new ProcessBuilder(javaPath, "-version").redirectErrorStream(true).start();
             String output = new String(p.getInputStream().readAllBytes());
             p.waitFor();
-            // Parse version from output like: openjdk version "21.0.1" or "1.8.0_xxx"
             java.util.regex.Matcher m = java.util.regex.Pattern.compile("\"(\\d+)([.\\d]*)\"")
                     .matcher(output);
             if (m.find()) return Integer.parseInt(m.group(1));
         } catch (Exception ignored) {}
         return 0;
+    }
+
+    private static void extractZip(Path zipFile, Path destDir) throws IOException {
+        try (var zis = new java.util.zip.ZipInputStream(Files.newInputStream(zipFile))) {
+            java.util.zip.ZipEntry entry;
+            while ((entry = zis.getNextEntry()) != null) {
+                Path dest = destDir.resolve(entry.getName());
+                if (entry.isDirectory()) {
+                    Files.createDirectories(dest);
+                } else {
+                    Files.createDirectories(dest.getParent());
+                    Files.copy(zis, dest, StandardCopyOption.REPLACE_EXISTING);
+                }
+            }
+        }
     }
 
     private static void updateStatus(JLabel label, String text) {
